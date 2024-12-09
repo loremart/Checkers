@@ -4,12 +4,13 @@ from constants import SQUARE_SIZE, WHITE, BLACK
 
 class Board:
     def __init__(self):
-        # Crea la scacchiera con i pezzi iniziali
         self.board = self.create_board()
+        self.selected_piece = None
+        self.turn = WHITE  # Il turno inizia con il bianco
 
     @staticmethod
     def create_board():
-        """Crea la scacchiera e posiziona i pezzi all'inizio"""
+        """Crea la scacchiera e posiziona i pezzi iniziali"""
         board = [[None for _ in range(8)] for _ in range(8)]  # 8x8 scacchiera vuota
         for row in range(8):
             for col in range(8):
@@ -37,7 +38,7 @@ class Board:
         row_diff = abs(piece.row - new_row)
         col_diff = abs(piece.col - new_col)
 
-        # Mossa semplice (diagonale)
+        # Se è una mossa semplice (diagonale)
         if row_diff == 1 and col_diff == 1:
             if piece.color == WHITE and new_row < piece.row:  # Le pedine bianche non possono tornare indietro
                 return False
@@ -58,10 +59,11 @@ class Board:
 
     def move_piece(self, piece, new_row, new_col):
         """Muove un pezzo dalla posizione attuale alla nuova posizione"""
-        # Cattura: Rimuove il pezzo avversario se presente
         row_diff = abs(piece.row - new_row)
         col_diff = abs(piece.col - new_col)
-        if row_diff == 2 and col_diff == 2:  # Se c'è una cattura
+
+        # Se c'è una cattura
+        if row_diff == 2 and col_diff == 2:
             middle_row = (piece.row + new_row) // 2
             middle_col = (piece.col + new_col) // 2
             middle_piece = self.get_piece(middle_row, middle_col)
@@ -73,6 +75,15 @@ class Board:
         self.board[piece.row][piece.col] = None  # Rimuove il pezzo dalla vecchia posizione
         self.board[new_row][new_col] = piece  # Posiziona il pezzo nella nuova posizione
         piece.move(new_row, new_col)  # Aggiorna la posizione del pezzo
+
+        # Promuove la pedina a dama se raggiunge l'estremità della scacchiera
+        if piece.color == WHITE and new_row == 0:
+            piece.promote_to_king()
+        elif piece.color == BLACK and new_row == 7:
+            piece.promote_to_king()
+
+        # Cambia il turno
+        self.turn = WHITE if self.turn == BLACK else BLACK
 
     def get_valid_moves(self, piece):
         """Restituisce tutte le mosse valide per un dato pezzo"""
