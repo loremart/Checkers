@@ -1,47 +1,30 @@
 from board import Board
+from piece import Piece
 from constants import WHITE, BLACK
 
 class Game:
     def __init__(self):
         self.board = Board()
-        self.turn = WHITE
         self.selected_piece = None
-        self.winner = None
-
-    def switch_turn(self):
-        self.turn = BLACK if self.turn == WHITE else WHITE
+        self.turn = WHITE  # Inizia con il bianco
 
     def select_piece(self, row, col):
+        """Gestisce la selezione di un pezzo"""
         piece = self.board.get_piece(row, col)
         if piece and piece.color == self.turn:
             self.selected_piece = piece
-            return True
-        self.selected_piece = None
-        return False
+        elif self.selected_piece:
+            self.move_selected_piece(row, col)
 
-    def move_selected_piece(self, new_row, new_col):
-        if not self.selected_piece:
-            return False
-
-        if self.board.is_valid_move(self.selected_piece, new_row, new_col):
-            self.board.move(self.selected_piece, new_row, new_col)
-
-            # Gestione catture
-            captured = self.board.check_capture(self.selected_piece, new_row, new_col)
-            if captured:
-                self.board.remove_captured_pieces(captured)
-
-            # Passa al turno successivo
-            self.switch_turn()
+    def move_selected_piece(self, row, col):
+        """Muove il pezzo selezionato sulla scacchiera"""
+        if self.selected_piece:
+            valid_moves = self.board.get_valid_moves(self.selected_piece)
+            if (row, col) in valid_moves:
+                self.board.move_piece(self.selected_piece, row, col)
+                self.switch_turn()
             self.selected_piece = None
-            return True
 
-        # Se la mossa non è valida, il pezzo resta selezionato
-        return False
-
-    def check_winner(self):
-        if not self.board.has_pieces(WHITE):
-            self.winner = BLACK
-        elif not self.board.has_pieces(BLACK):
-            self.winner = WHITE
-        return self.winner
+    def switch_turn(self):
+        """Cambia il turno"""
+        self.turn = WHITE if self.turn == BLACK else BLACK

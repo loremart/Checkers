@@ -1,22 +1,25 @@
-# main.py
 import pygame
-from board import Board
+from game import Game
 from constants import WIDTH, HEIGHT, SQUARE_SIZE
 
+FPS = 60
+
+WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption('Checkers')
+
+def get_row_col_from_mouse(pos):
+    x, y = pos
+    row = y // SQUARE_SIZE
+    col = x // SQUARE_SIZE
+    return row, col
+
 def main():
-    pygame.init()
-    WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Gioco della Dama")
-
-    board = Board()
-    selected_piece = None
-    valid_moves = {}
-
     run = True
     clock = pygame.time.Clock()
+    game = Game()  # Crea un'istanza del gioco
 
     while run:
-        clock.tick(60)
+        clock.tick(FPS)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -24,32 +27,15 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
-                row, col = pos[1] // SQUARE_SIZE, pos[0] // SQUARE_SIZE
+                row, col = get_row_col_from_mouse(pos)
+                game.select_piece(row, col)
 
-                if selected_piece:
-                    if (row, col) in valid_moves:
-                        board.move_piece(selected_piece, row, col)
-                        selected_piece = None
-                        valid_moves = {}
-                    else:
-                        selected_piece = None
-                        valid_moves = {}
-                else:
-                    piece = board.get_piece(row, col)
-                    if piece != 0:
-                        selected_piece = piece
-                        valid_moves = board.get_valid_moves(piece)
+            if event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                row, col = get_row_col_from_mouse(pos)
+                game.move_selected_piece(row, col)
 
-        # Disegna la scacchiera
-        board.draw(WIN)
-
-        # Disegna i movimenti validi (cerchi verdi)
-        for move in valid_moves:
-            r, c = move
-            pygame.draw.circle(WIN, (0, 255, 0),
-                               (c * SQUARE_SIZE + SQUARE_SIZE // 2,
-                                r * SQUARE_SIZE + SQUARE_SIZE // 2), 15)
-
+        game.board.draw(WIN)
         pygame.display.update()
 
     pygame.quit()
